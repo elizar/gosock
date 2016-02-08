@@ -1,6 +1,6 @@
 // CRAP CHAT
 // ----------------------------------
-// Testing out tcp socket with  GO
+// Trying out tcp sockets in GO
 // @version 0.0.1
 // @author Penzur Desu
 package main
