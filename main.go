@@ -8,6 +8,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"math/rand"
 	"net"
 	"regexp"
@@ -17,10 +18,11 @@ import (
 )
 
 func main() {
-	socks := make(map[float64]net.Conn)
+	socks := make(map[string]net.Conn)
 
 	sock, err := net.Listen("tcp", ":31337")
 	failOnError(err, "Can't bind to address and port")
+	log.Println("[SERVER] - Now accepting connection on port 31337")
 
 	for {
 		conn, err := sock.Accept()
@@ -28,15 +30,24 @@ func main() {
 
 		go func(con net.Conn) {
 			// create random identifier
-			id := rand.New(rand.NewSource(time.Now().UnixNano())).Float64()
+			rnd := rand.New(rand.NewSource(time.Now().UnixNano())).Float64()
+			id := strings.Replace(
+				strconv.FormatFloat(rnd, 'f', 6, 64),
+				"0.",
+				"",
+				-1,
+			)
+
 			// add new con to socks
 			socks[id] = con
-
+			connection_msg := fmt.Sprintf("client-%s connected\n", id)
 			writeToSocks(
 				socks,
 				id,
-				fmt.Sprintf("client-%s connected\n", strconv.FormatFloat(id, 'f', 6, 64)),
+				connection_msg,
 			)
+
+			log.Printf("%s", connection_msg)
 
 			// Loop
 			for {
@@ -59,7 +70,7 @@ func main() {
 					writeToSocks(
 						socks,
 						id,
-						fmt.Sprintf("client [%f] disconnected\n", id),
+						fmt.Sprintf("client-%s disconnected\n", id),
 					) // print out dc notice
 					return
 				}
@@ -67,14 +78,7 @@ func main() {
 				matched, _ = regexp.MatchString(".{2,}", line)
 				// if message is not empty
 				if matched == true {
-					sid := strings.Replace(
-						strconv.FormatFloat(id, 'f', 6, 64),
-						"0.",
-						"",
-						-1,
-					)
-
-					writeToSocks(socks, id, fmt.Sprintf("client-%s> %s", sid, line))
+					writeToSocks(socks, id, fmt.Sprintf("client-%s> %s", id, line))
 				}
 			}
 		}(conn)
@@ -82,7 +86,7 @@ func main() {
 
 }
 
-func writeToSocks(socks map[float64]net.Conn, id float64, msg string) {
+func writeToSocks(socks map[string]net.Conn, id string, msg string) {
 	for k, s := range socks {
 		// only write to other sockets
 		if k != id {
@@ -94,7 +98,7 @@ func writeToSocks(socks map[float64]net.Conn, id float64, msg string) {
 
 func failOnError(err error, msg string) {
 	if err != nil {
-		fmt.Printf("%s: %s", msg, err)
-		panic(fmt.Sprintf("%s: %s", msg, err))
+		log.Printf("%s: %s\n", msg, err)
+		panic(fmt.Sprintf("%s: %s\n", msg, err))
 	}
 }
