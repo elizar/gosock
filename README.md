@@ -1,6 +1,6 @@
 # CRAPCHAT v0.0.1
 
-A simplisstic tcp chat server implemented in GO.
+A simplisstic tcp chat server written in GO.
 
 
 ## Requirements
@@ -9,7 +9,9 @@ A simplisstic tcp chat server implemented in GO.
 
 ## Running server and connecting
 
-1. Just `go run main.go`
-2. Telnet to port `31337` and start chatting!
+1. Just do `go run main.go`
+2. then connect to port `31337` using telnet
+3. start chatting!!! :D
 
-### ENJOY!!!
+-----
+2016 EP.
